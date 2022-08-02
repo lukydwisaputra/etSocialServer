@@ -3,7 +3,7 @@ const util = require('util');
 
 const dbConfig = mysql.createPool({
 	host: process.env.DB_HOST,
-	user: process.env.DB_USER,
+	user: process.env.DB_USERNAME,
 	password: process.env.DB_SECRETS,
 	database: process.env.DB_NAME,
 });
