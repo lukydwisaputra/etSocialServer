@@ -10,12 +10,16 @@ const {
 	postsRouter,
 	usersRouter,
 } = require("./routers");
+const bearerToken = require('express-bearer-token');
 
 const app = express();
 const PORT = process.env.PORT;
 
 app.use(express.json());
 app.use(cors());
+
+app.use(bearerToken());
+app.use(express.static('public'));
 
 app.get("/api", (req, res) => {
 	res.status(200).send("étSocial API");

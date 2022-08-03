@@ -1,10 +1,28 @@
-require('dotenv').config();
-const Crypto = require('crypto');
+require("dotenv").config();
+const Crypto = require("crypto");
+const jwt = require("jsonwebtoken");
 
 module.exports = {
-    hashPassword: (pass) => {
-        return Crypto.createHmac(
-            process.env.ENCRYPTION_ALGORITHM, 
-            process.env.ENCRYPTION_KEY).update(pass).digest(process.env.ENCRYPTION_OUTPUT);
-    }
-}
+	hashPassword: (pass) => {
+		return Crypto.createHmac(process.env.ENCRYPTION_ALGORITHM, process.env.ENCRYPTION_KEY)
+			.update(pass)
+			.digest(process.env.ENCRYPTION_OUTPUT);
+	},
+	createToken: (payload) => {
+        // console.log(payload)
+		return jwt.sign(payload, process.env.JWT_SECRETS, { expiresIn: "1h" });
+	},
+	verifyToken: (req, res, next) => {
+        // console.log('test', req.token)
+		jwt.verify(req.token, process.env.JWT_SECRETS, (err, decode) => {
+			if (err) {
+				return res.status(401).send({
+					success: false,
+					message: "Unauthorized request ❌",
+				});
+			}
+			req.dataToken = decode;
+			next();
+		});
+	},
+};

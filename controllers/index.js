@@ -4,6 +4,7 @@ const likesController = require('./likes');
 const newsController = require('./news');
 const postsController = require('./posts');
 const usersController = require('./users');
+const authController = require('./auth');
 
 module.exports = {
     articlesController,
@@ -11,5 +12,6 @@ module.exports = {
     likesController,
     newsController,
     postsController,
-    usersController
+    usersController,
+    authController
 }

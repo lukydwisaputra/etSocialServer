@@ -2,7 +2,7 @@ const { dbQuery, dbConfig } = require("../config/database");
 const objectFilter = require("../helper/objectFilter");
 
 module.exports = {
-	getFeeds: async (req, res) => {
+	getFeedsByUserId: async (req, res) => {
 		// getAllFeeds and getAllUserFeeds
 		// http://localhost:3100/api/posts/feeds -> getAllFeeds
 		// http://localhost:3100/api/posts/feeds?id=1 -> getAllUserFeeds - or,
@@ -11,19 +11,20 @@ module.exports = {
 			let posts = [];
 			if (Object.keys(req?.query).length > 0) {
 				let id = req.query?.id_user ? req.query?.id_user : req.query?.id;
+
 				posts = await dbQuery(`
 					SELECT 
-						u.id, 
+						p.id as id_post, 
+						p.caption, 
+						p.post_image, 
+						p.created_at,
+						u.id as id_user, 
 						u.username, 
 						u.email, 
 						u.status, 
 						u.name, 
 						u.bio, 
-						u.profile_picture,
-						p.id as id_post, 
-						p.caption, 
-						p.post_image, 
-						p.created_at
+						u.profile_picture
 					FROM users u 
 					JOIN posts p 
 					ON u.id = p.id_user
@@ -43,8 +44,7 @@ module.exports = {
 						u.bio, 
 						u.profile_picture
 					FROM users u 
-					JOIN posts p 
-					ON u.id = p.id_user`);
+					JOIN posts p`);
 			}
 
 			postsDetails = [];
@@ -61,6 +61,7 @@ module.exports = {
 						JOIN users u
 						ON u.id = l.id_user
 						WHERE l.id_post = ${post?.id_post};`);
+
 					const comments = await dbQuery(`
 						SELECT 
 							c.id, 
@@ -83,7 +84,7 @@ module.exports = {
 			if (postsDetails.length > 0) {
 				res.status(200).send({
 					success: true,
-					feeds: postsDetails,
+					posts: postsDetails,
 				});
 			} else {
 				res.status(400).send({
@@ -98,18 +99,52 @@ module.exports = {
 			});
 		}
 	},
-	get: async (req, res) => {
+	getFeedsByPostId: async (req, res) => {
+		// getAllFeeds and getFeedsById
 		try {
-			let posts = await dbQuery("SELECT * FROM posts;");
+			let posts = await dbQuery(`SELECT * FROM posts;`);
 
 			let isSorting = Object.keys(req.query).length > 0;
 			let sortedPost = objectFilter(req.query, posts);
 
+			postsDetails = [];
+			const getDetailSerialized = async (posts) => {
+				await posts.reduce(async (acc, post) => {
+					await acc; // wait previous process
+					const likes = await dbQuery(`
+						SELECT 
+							l.id, 
+							l.id_user, 
+							u.username, 
+							u.profile_picture 
+						FROM likes l 
+						JOIN users u
+						ON u.id = l.id_user
+						WHERE l.id_post = ${post?.id};`);
+
+					const comments = await dbQuery(`
+						SELECT 
+							c.id, 
+							c.id_user, 
+							u.username, 
+							u.profile_picture 
+						FROM comments c 
+						JOIN users u
+						ON u.id = c.id_user
+						WHERE c.id_post = ${post?.id};`);
+
+					post = { ...post, likes, comments };
+					postsDetails.push(post);
+				}, Promise.resolve());
+				// console.log("async looping finished");
+			};
+
 			if (isSorting) {
 				if (sortedPost.length > 0) {
+					await getDetailSerialized(sortedPost);
 					res.status(200).send({
 						success: true,
-						posts: sortedPost,
+						posts: postsDetails,
 					});
 				} else {
 					res.status(400).send({
@@ -119,9 +154,10 @@ module.exports = {
 				}
 			} else {
 				if (posts.length > 0) {
+					await getDetailSerialized(posts);
 					res.status(200).send({
 						success: true,
-						posts,
+						posts: postsDetails,
 					});
 				} else {
 					res.status(400).send({
@@ -138,8 +174,11 @@ module.exports = {
 		}
 	},
 	add: async (req, res) => {
+		const post_image = req.files[0]?.path ? req.files[0]?.path : "";
+		const id_user = req.dataToken.id;
+
 		try {
-			let { id_user, post_image, caption } = req.body;
+			let { caption } = req.body;
 			await dbQuery(`
 				INSERT INTO posts (id_user, post_image, caption) VALUES
 				(${dbConfig.escape(id_user)},
@@ -149,7 +188,7 @@ module.exports = {
 
 			res.status(200).send({
 				success: true,
-				message: "New post has been submited ✅",
+				message: "Post has been submited ✅",
 			});
 		} catch (error) {
 			res.status(500).send({
@@ -162,6 +201,7 @@ module.exports = {
 		try {
 			let id = req.params.id;
 			let posts = await dbQuery(`SELECT * FROM posts WHERE id = ${dbConfig.escape(id)};`);
+
 			if (posts.length > 0) {
 				let prop = Object.keys(req.body);
 				let value = Object.values(req.body);
@@ -172,9 +212,9 @@ module.exports = {
 					})
 					.join(",");
 
-				await dbQuery(`UPDATE posts SET ${data} WHERE id = ${dbConfig.escape(id)}`);
+				await dbQuery(`UPDATE posts p SET ${data} WHERE p.id = ${dbConfig.escape(id)}`);
 
-				posts = await dbQuery(`SELECT * FROM posts WHERE id = ${dbConfig.escape(id)};`);
+				posts = await dbQuery(`SELECT * FROM posts p WHERE p.id = ${dbConfig.escape(id)};`);
 				res.status(200).send({
 					success: true,
 					message: "Post has been updated ✅",
@@ -194,6 +234,7 @@ module.exports = {
 		}
 	},
 	remove: async (req, res) => {
+		// remove image after deleting from database
 		try {
 			let id = req.params.id;
 			let posts = await dbQuery(`SELECT * FROM posts WHERE id = ${dbConfig.escape(id)};`);
