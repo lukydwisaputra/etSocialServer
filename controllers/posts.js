@@ -28,7 +28,8 @@ module.exports = {
 					FROM users u 
 					JOIN posts p 
 					ON u.id = p.id_user
-					WHERE u.id = ${id};`);
+					WHERE u.id = ${id}
+					ORDER BY p.id DESC;`);
 			} else {
 				posts = await dbQuery(`
 					SELECT 
@@ -44,7 +45,8 @@ module.exports = {
 						u.bio, 
 						u.profile_picture
 					FROM users u 
-					JOIN posts p`);
+					JOIN posts p
+					ORDER BY p.id DESC;`);
 			}
 
 			postsDetails = [];
@@ -60,7 +62,9 @@ module.exports = {
 						FROM likes l 
 						JOIN users u
 						ON u.id = l.id_user
-						WHERE l.id_post = ${post?.id_post};`);
+						WHERE l.id_post = ${post?.id_post}
+						ORDER BY l.id DESC;`
+					);
 
 					const comments = await dbQuery(`
 						SELECT 
@@ -71,7 +75,9 @@ module.exports = {
 						FROM comments c 
 						JOIN users u
 						ON u.id = c.id_user
-						WHERE c.id_post = ${post?.id_post};`);
+						WHERE c.id_post = ${post?.id_post}
+						ORDER BY c.id DESC;`
+					);
 
 					post = { ...post, likes, comments };
 					postsDetails.push(post);
@@ -102,7 +108,7 @@ module.exports = {
 	getFeedsByPostId: async (req, res) => {
 		// getAllFeeds and getFeedsById
 		try {
-			let posts = await dbQuery(`SELECT * FROM posts;`);
+			let posts = await dbQuery(`SELECT * FROM posts p ORDER BY p.id DESC;`);
 
 			let isSorting = Object.keys(req.query).length > 0;
 			let sortedPost = objectFilter(req.query, posts);
@@ -120,7 +126,9 @@ module.exports = {
 						FROM likes l 
 						JOIN users u
 						ON u.id = l.id_user
-						WHERE l.id_post = ${post?.id};`);
+						WHERE l.id_post = ${post?.id}
+						ORDER BY l.id DESC;`
+					);
 
 					const comments = await dbQuery(`
 						SELECT 
@@ -131,7 +139,9 @@ module.exports = {
 						FROM comments c 
 						JOIN users u
 						ON u.id = c.id_user
-						WHERE c.id_post = ${post?.id};`);
+						WHERE c.id_post = ${post?.id}
+						ORDER BY c.id DESC;`
+					);
 
 					post = { ...post, likes, comments };
 					postsDetails.push(post);

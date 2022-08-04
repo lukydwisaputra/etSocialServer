@@ -1,13 +1,16 @@
 const { dbQuery, dbConfig } = require("../config/database");
 const objectFilter = require("../helper/objectFilter");
 const { hashPassword, createToken } = require("../config/encrypt");
+const { transporter } = require('../config/nodemailer');
+const hbs = require('nodemailer-express-handlebars');
 const fs = require("fs");
+const path = require("path");
 
 module.exports = {
 	register: async (req, res) => {
+		let { username, email, password } = req.body;
 		try {
-			let { username, email, password } = req.body;
-			await dbQuery(`
+			let addUser = await dbQuery(`
             INSERT INTO users (username, email, password, name, profile_picture) VALUES
                 (${dbConfig.escape(username)}, 
                 ${dbConfig.escape(email)},
@@ -16,10 +19,55 @@ module.exports = {
                 "https://avatars.dicebear.com/api/identicon/${username}.svg");
             `);
 
-			res.status(200).send({
-				success: true,
-				message: `User registered✅`,
-			});
+			if (addUser.insertId) {
+				let users = await dbQuery(`
+				SELECT * FROM users u WHERE u.email = ${dbConfig.escape(email)}
+				AND u.password = ${dbConfig.escape(hashPassword(password))}`)
+				delete users[0].password;
+
+				let token = createToken({...users[0]})
+
+				const handlebarOptions = {
+					viewEngine: {
+						extName: '.handlebars',
+						partialsDir: path.resolve('./template'),
+						defaultLayout: false,
+					},
+					viewPath: path.resolve('./template'),
+					extName: '.handlebars',
+				}
+
+				transporter.use('compile', hbs(handlebarOptions))
+
+				let mailOptions = {
+					from :'étSocial | Social Media',
+					to : email,
+					subject : 'Email verification',
+					template: 'email',
+					context: {
+						landingPage: 'http://localhost:3000',
+						username: username,
+						verificationLink: `http://localhost:3000/home/${token}`
+					}
+				}
+
+				transporter.sendMail(mailOptions, async (error, info) => {
+					if (error) {
+						console.log(error);
+						await dbQuery(`DELETE FROM users u WHERE u.email = ${dbConfig.escape(email)};`);
+						return 
+					} 
+					console.log(`Verification email sent to ${email} ✅ \nInfo: ${info.response}`);
+
+					res.status(200).send({
+						success: true,
+						message: `User registered✅`,
+					});
+				})
+
+
+				
+			}
 		} catch (error) {
 			console.log(error);
 			res.status(500).send({
@@ -50,7 +98,7 @@ module.exports = {
 						token: createToken({...users[0]})
 					});
 				} else {
-					res.status(200).send({
+					res.status(401).send({
 						success: false,
 						message: `User login denied`,
 					});
@@ -70,7 +118,7 @@ module.exports = {
 						token: createToken({...users[0]})
 					});
 				} else {
-					res.status(200).send({
+					res.status(401).send({
 						success: false,
 						message: `User login denied`,
 					});
@@ -215,7 +263,7 @@ module.exports = {
 						users: sortedUsers,
 					});
 				} else {
-					res.status(400).send({
+					res.status(200).send({
 						success: false,
 						message: "Users not found",
 					});
@@ -227,7 +275,7 @@ module.exports = {
 						users,
 					});
 				} else {
-					res.status(400).send({
+					res.status(200).send({
 						success: false,
 						message: "Users not found",
 					});
@@ -240,4 +288,7 @@ module.exports = {
 			});
 		}
 	},
+	verify: async (req, res) => {
+
+	}
 };

@@ -9,11 +9,9 @@ module.exports = {
 			.digest(process.env.ENCRYPTION_OUTPUT);
 	},
 	createToken: (payload) => {
-        // console.log(payload)
 		return jwt.sign(payload, process.env.JWT_SECRETS, { expiresIn: "1h" });
 	},
 	verifyToken: (req, res, next) => {
-        // console.log('test', req.token)
 		jwt.verify(req.token, process.env.JWT_SECRETS, (err, decode) => {
 			if (err) {
 				return res.status(401).send({
