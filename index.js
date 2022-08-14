@@ -21,6 +21,10 @@ app.use(cors());
 app.use(bearerToken());
 app.use(express.static('public'));
 
+app.get("/", (req, res) => {
+	res.status(200).send("étSocial API");
+});
+
 app.get("/api", (req, res) => {
 	res.status(200).send("étSocial API");
 });
@@ -32,24 +36,24 @@ dbConfig.getConnection((error, connection) => {
 	}
 
 	console.log("Connected ✅ :", connection.threadId);
-
+	
 	// articles
 	app.use("/api/articles", articlesRouter);
-
+	
 	// comments
 	app.use("/api/comments", commentsRouter);
-
+	
 	// likes
 	app.use("/api/likes", likesRouter);
-
+	
 	// news
 	app.use("/api/news", newsRouter);
-
+	
 	// posts
 	app.use("/api/posts", postsRouter);
-
+	
 	// users
 	app.use("/api/users", usersRouter);
-
+	
 	app.listen(PORT, () => console.log("étSocial API at PORT:", parseInt(PORT)));
 });

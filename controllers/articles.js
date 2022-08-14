@@ -16,7 +16,7 @@ module.exports = {
 						articles: sortedArticles,
 					});
 				} else {
-					res.status(400).send({
+					res.status(200).send({
 						success: false,
 						message: "Articles not found",
 					});
@@ -28,7 +28,7 @@ module.exports = {
 						articles,
 					});
 				} else {
-					res.status(400).send({
+					res.status(200).send({
 						success: false,
 						message: "Articles not found",
 					});

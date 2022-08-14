@@ -44,6 +44,7 @@ module.exports = {
 	add: async (req, res) => {
 		try {
 			let { id_user, id_post, comment } = req.body;
+			await dbQuery(`ALTER TABLE comments MODIFY comment TEXT CHARSET utf8mb4;`);
 			await dbQuery(`
 				INSERT INTO comments (id_user, id_post, comment) VALUES
 				(${dbConfig.escape(id_user)},
@@ -56,6 +57,7 @@ module.exports = {
 				message: "New comment has been submited ✅",
 			});
 		} catch (error) {
+			console.log(error)
 			res.status(500).send({
 				success: false,
 				message: error,
@@ -116,6 +118,32 @@ module.exports = {
 				});
 			}
 		} catch (error) {
+			res.status(500).send({
+				success: false,
+				message: error,
+			});
+		}
+	},
+	removeByPostId: async (req, res) => {
+		try {
+			let id = req.params.id;
+			let comments = await dbQuery(`SELECT * FROM comments WHERE id_post = ${dbConfig.escape(id)};`);
+			if (comments.length > 0) {
+				await dbQuery(`
+					DELETE FROM comments WHERE id_post = ${dbConfig.escape(id)};
+				`);
+				res.status(200).send({
+					success: true,
+					message: "Comment has been deleted ✅",
+				});
+			} else {
+				res.status(200).send({
+					success: false,
+					message: `No comments with id ${id}`,
+				});
+			}
+		} catch (error) {
+			console.log(error)
 			res.status(500).send({
 				success: false,
 				message: error,
