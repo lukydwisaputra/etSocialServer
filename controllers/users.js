@@ -53,7 +53,7 @@ module.exports = {
 					},
 				}
 
-				transporter.use('compile', hbs(handlebarOptions))
+				// transporter.use('compile', hbs(handlebarOptions))
 
 				transporter.sendMail(mailOptions, async (error, info) => {
 					if (error) {
@@ -357,7 +357,7 @@ module.exports = {
 					verificationLink: `${HOST}/verification/${newToken}`,
 				},
 			}
-			transporter.use('compile', hbs(handlebarOptions))
+			// transporter.use('compile', hbs(handlebarOptions))
 
 			transporter.sendMail(mailOptions, async (error, info) => {
 				if (error) {
