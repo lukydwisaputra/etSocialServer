@@ -329,7 +329,6 @@ module.exports = {
 			let users = await dbQuery(
 			`SELECT * FROM users u WHERE u.email = ${dbConfig.escape(email)};`)
 
-			console.log(users)
 			delete users[0].password
 
 			let newToken = createToken({ ...users[0] })
@@ -380,12 +379,98 @@ module.exports = {
 			})
 		}
 	},
-	passwordRecovery: async (req, res) => {
-		const in60Minutes = 1 / 24
-		Cookies.set('test-cookie', 'true', { expires: in60Minutes })
-		res.status(200).send({
-			success: true,
-			message: 'Cookie was set ✅',
-		})
+	sendResetPassword: async (req, res) => {
+		try {
+			let { email } = req.body
+			let users = await dbQuery(
+			`SELECT * FROM users u WHERE u.email = ${dbConfig.escape(email)};`)
+			delete users[0].password
+
+			let newToken = createToken({ ...users[0] })
+
+			const handlebarOptions = {
+				viewEngine: {
+					extName: '.handlebars',
+					partialsDir: path.resolve('./template'),
+					defaultLayout: false,
+				},
+				viewPath: path.resolve('./template'),
+				extName: '.handlebars',
+			}
+
+			transporter.use('compile', hbs(handlebarOptions))
+
+			let mailOptions = {
+				from: 'étSocial | Social Media',
+				to: email,
+				subject: 'Password Recovery',
+				template: 'password_recovery',
+				context: {
+					landingPage: HOST,
+					username: users[0].username,
+					verificationLink: `${HOST}/recovery/${newToken}`,
+				},
+			}
+			// transporter.use('compile', hbs(handlebarOptions))
+
+			transporter.sendMail(mailOptions, async (error, info) => {
+				if (error) {
+					console.log(error)
+					return
+				}
+
+				res.status(200).send({
+					success: true,
+					message: 'Password recovery mail sent ✅',
+					token: newToken,
+				})
+				console.log(`Password recovery mail sent ✅ \nInfo: ${info.response}`)
+			})
+		} catch (error) {
+			console.log(error)
+			res.status(500).send({
+				success: false,
+				message: error,
+			})
+		}
+	},
+	updatePassword: async (req, res) => {
+		try {
+			let id = req.dataToken.id
+			let user = await dbQuery(`SELECT * FROM users WHERE id = ${id};`)
+
+			if (user.length > 0) {
+				let prop = Object.keys(req.body)
+				let value = Object.values(req.body)
+
+				let data = prop
+				.map((val, idx) => {
+					return `${prop[idx]} = ${dbConfig.escape(hashPassword(value[idx]))}`
+				})
+				.join(',')
+
+			await dbQuery(`UPDATE users SET ${data} WHERE id = ${dbConfig.escape(id)};`)
+
+				user = await dbQuery(`SELECT * FROM users WHERE id = ${dbConfig.escape(id)};`)
+				delete user[0].password
+
+				res.status(200).send({
+					success: true,
+					message: 'Password has been updated ✅',
+					user,
+				})
+			} else {
+				res.status(200).send({
+					success: false,
+					message: `No password with id ${dbConfig.escape(id)}`,
+				})
+			}
+		} catch (error) {
+			console.log(error)
+			res.status(500).send({
+				success: false,
+				message: error,
+			})
+		}
 	},
 }

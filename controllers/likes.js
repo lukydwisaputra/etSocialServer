@@ -99,7 +99,7 @@ module.exports = {
 					})
 					.join(',')
 
-				await dbQuery(`UPDATE likes SET ${data} WHERE id = ${dbConfig.escape(id)}`)
+				await dbQuery(`UPDATE likes SET ${data} WHERE id = ${dbConfig.escape(id)};`)
 
 				likes = await dbQuery(`SELECT * FROM likes WHERE id = ${dbConfig.escape(id)};`)
 				res.status(200).send({
