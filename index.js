@@ -6,7 +6,6 @@ const { articlesRouter, commentsRouter, likesRouter, newsRouter, postsRouter, us
 const bearerToken = require('express-bearer-token')
 
 const app = express()
-const PORT = process.env.PORT
 
 app.use(express.json())
 app.use(cors())
@@ -49,4 +48,4 @@ app.use('/api/posts', postsRouter)
 // users
 app.use('/api/users', usersRouter)
 
-app.listen(PORT || 3100, () => console.log('étSocial API at PORT:', PORT))
+app.listen(process.env.PORT || 3100, process.env.HOST || '0.0.0.0', () => console.log('étSocial API at PORT:', PORT))
