@@ -48,5 +48,5 @@ dbConfig.getConnection((error, connection) => {
 	// users
 	app.use('/api/users', usersRouter)
 
-	app.listen(PORT, () => console.log('étSocial API at PORT:', parseInt(PORT)))
+	app.listen(PORT || 3100, () => console.log('étSocial API at PORT:', parseInt(PORT)))
 })
