@@ -29,24 +29,24 @@ dbConfig.getConnection((error, connection) => {
 	}
 
 	console.log('Connected ✅ :', connection.threadId)
-
-	// articles
-	app.use('/api/articles', articlesRouter)
-
-	// comments
-	app.use('/api/comments', commentsRouter)
-
-	// likes
-	app.use('/api/likes', likesRouter)
-
-	// news
-	app.use('/api/news', newsRouter)
-
-	// posts
-	app.use('/api/posts', postsRouter)
-
-	// users
-	app.use('/api/users', usersRouter)
-
-	app.listen(PORT || 3100, () => console.log('étSocial API at PORT:', parseInt(PORT)))
 })
+
+// articles
+app.use('/api/articles', articlesRouter)
+
+// comments
+app.use('/api/comments', commentsRouter)
+
+// likes
+app.use('/api/likes', likesRouter)
+
+// news
+app.use('/api/news', newsRouter)
+
+// posts
+app.use('/api/posts', postsRouter)
+
+// users
+app.use('/api/users', usersRouter)
+
+app.listen(PORT || 3100, () => console.log('étSocial API at PORT:', PORT))
