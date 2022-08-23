@@ -15,9 +15,9 @@ app.use(cors())
 app.use(bearerToken())
 app.use(express.static('public'))
 
-app.get('/', (req, res) => {
-	res.status(200).send('étSocial API')
-})
+// app.get('/', (req, res) => {
+// 	res.status(200).send('étSocial API')
+// })
 
 app.get('/api', (req, res) => {
 	res.status(200).send('étSocial API')
