@@ -45,11 +45,7 @@ module.exports = {
 		try {
 			let { id_user, id_post } = req.body
 
-			let likes = await dbQuery(
-				`SELECT * FROM likes l WHERE l.id_user = ${dbConfig.escape(
-					id_user
-				)} AND l.id_post = ${dbConfig.escape(id_post)};`
-			)
+			let likes = await dbQuery(`SELECT * FROM likes l WHERE l.id_user = ${dbConfig.escape(id_user)} AND l.id_post = ${dbConfig.escape(id_post)};`)
 
 			if (likes.length > 0) {
 				return
@@ -64,11 +60,11 @@ module.exports = {
 				SELECT * FROM likes l WHERE l.id_user=${dbConfig.escape(id_user)} AND 
 				l.id_post=${dbConfig.escape(id_post)};`)
 
-				if(likes.length > 0) {
+				if (likes.length > 0) {
 					res.status(200).send({
 						success: true,
 						message: 'New like has been submited ✅',
-						likes
+						likes,
 					})
 				} else {
 					res.status(400).send({
@@ -123,10 +119,10 @@ module.exports = {
 	remove: async (req, res) => {
 		try {
 			let id = req.params.id
-			let likes = await dbQuery(`SELECT * FROM likes l WHERE l.id = ${dbConfig.escape(id)};`)
+			let likes = await dbQuery(`SELECT * FROM likes l WHERE l.id = ${id};`)
 			if (likes.length > 0) {
 				await dbQuery(`
-					DELETE FROM likes WHERE id = ${dbConfig.escape(id)};
+					DELETE FROM likes WHERE id = ${id};
 				`)
 				res.status(200).send({
 					success: true,
