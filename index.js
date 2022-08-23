@@ -50,4 +50,4 @@ app.use('/api/posts', postsRouter)
 // users
 app.use('/api/users', usersRouter)
 
-app.listen(process.env.PORT || 3100, () => console.log('étSocial API at PORT:', process.env.PORT))
+app.listen(process.env.PORT, () => console.log('étSocial API at PORT:', process.env.PORT))
