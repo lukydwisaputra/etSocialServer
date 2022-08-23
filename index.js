@@ -1,8 +1,8 @@
 require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
-const { dbConfig } = require('../../archieve/etSocial_API/config/database')
-const { articlesRouter, commentsRouter, likesRouter, newsRouter, postsRouter, usersRouter } = require('../routers')
+const { dbConfig } = require('../archieve/etSocial_API/config/database')
+const { articlesRouter, commentsRouter, likesRouter, newsRouter, postsRouter, usersRouter } = require('./routers')
 const bearerToken = require('express-bearer-token')
 
 const PORT = process.env.PORT
