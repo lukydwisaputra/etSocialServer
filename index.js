@@ -5,7 +5,7 @@ const { dbConfig } = require('../archieve/etSocial_API/config/database')
 const { articlesRouter, commentsRouter, likesRouter, newsRouter, postsRouter, usersRouter } = require('./routers')
 const bearerToken = require('express-bearer-token')
 
-const PORT = process.env.PORT | 2000;
+const PORT = process.env.PORT | 3000;
 
 const app = express()
 
